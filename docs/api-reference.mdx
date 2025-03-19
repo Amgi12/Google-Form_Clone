@@ -1,0 +1,153 @@
+# API Documentation
+
+## Authentication
+
+All API endpoints are protected with JWT authentication. Include the JWT token in the Authorization header:
+
+```http
+Authorization: Bearer <your_jwt_token>
+```
+
+## Form Analytics
+
+### Get Form Summary
+
+Retrieves a summary of form responses including total responses and response rate per day.
+
+**Endpoint:** `GET /forms/{form_id}/analytics/summary`
+
+**Parameters:**
+- `form_id` (path parameter, integer) - The ID of the form to analyze
+
+**Response:**
+```json
+{
+  "total_responses": 100,
+  "response_rate_per_day": [
+    {
+      "date": "2024-03-20",
+      "count": 25
+    },
+    // ... more dates
+  ],
+  "first_response_at": "2024-03-20T10:00:00Z",
+  "latest_response_at": "2024-03-21T15:30:00Z"
+}
+```
+
+**Error Responses:**
+- `404 Not Found` - Form not found or user doesn't have access
+- `500 Internal Server Error` - Server error
+
+### Export Form Responses
+
+Exports all form responses to an Excel file.
+
+**Endpoint:** `GET /forms/{form_id}/export`
+
+**Parameters:**
+- `form_id` (path parameter, integer) - The ID of the form to export
+
+**Response:**
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- File download: `form_{form_id}_responses.xlsx`
+
+**Error Responses:**
+- `404 Not Found` - Form not found or user doesn't have access
+- `500 Internal Server Error` - Server error
+
+## Question Analytics
+
+### Get Question Analytics
+
+Retrieves analytics for a specific question, including answer distribution.
+
+**Endpoint:** `GET /questions/{question_id}/analytics`
+
+**Parameters:**
+- `question_id` (path parameter, integer) - The ID of the question to analyze
+
+**Response:**
+```json
+{
+  "total_answers": 100,
+  "common_answers": [
+    {
+      "text_answer": "Option A",
+      "count": 45
+    },
+    {
+      "text_answer": "Option B",
+      "count": 30
+    }
+    // ... more answers
+  ]
+}
+```
+
+**Error Responses:**
+- `404 Not Found` - Question not found or user doesn't have access
+- `500 Internal Server Error` - Server error
+
+## Error Response Format
+
+All error responses follow this format:
+
+```json
+{
+  "error": "Error Type",
+  "message": "Detailed error message"
+}
+```
+
+## Rate Limiting
+
+The API implements rate limiting to ensure fair usage. Please contact support if you need increased limits.
+
+## Best Practices
+
+1. Always handle error responses in your client application
+2. Implement proper error handling for network issues
+3. Cache responses when appropriate to improve performance
+4. Use appropriate timeout settings in your client
+
+## Examples
+
+### JavaScript/TypeScript Example
+
+```typescript
+async function getFormSummary(formId: number, token: string) {
+  const response = await fetch(`/forms/${formId}/analytics/summary`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch form summary');
+  }
+  
+  return await response.json();
+}
+```
+
+### Python Example
+
+```python
+import requests
+
+def get_form_summary(form_id: int, token: str):
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.get(
+        f'/forms/{form_id}/analytics/summary',
+        headers=headers
+    )
+    
+    response.raise_for_status()
+    return response.json()
+``` 
