@@ -1,0 +1,181 @@
+# Form Analytics API Documentation
+
+## Authentication
+All endpoints require JWT authentication. Include the token in the Authorization header:
+```http
+Authorization: Bearer <your_jwt_token>
+```
+
+## Forms
+
+### Get Form Analytics Summary
+- **Method**: GET
+- **Endpoint**: `/forms/{form_id}/analytics/summary`
+- **Parameters**: 
+  - `form_id` (path parameter, integer)
+- **Request Body**: N/A
+- **Success Response** (200):
+```json
+{
+  "total_responses": 100,
+  "response_rate_per_day": [
+    {
+      "date": "2024-03-20",
+      "count": 25
+    }
+  ],
+  "first_response_at": "2024-03-20T10:00:00Z",
+  "latest_response_at": "2024-03-21T15:30:00Z"
+}
+```
+- **Error Response** (404):
+```json
+{
+  "error": "Not Found",
+  "message": "Form not found"
+}
+```
+- **Error Response** (500):
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Error message details"
+}
+```
+
+### Export Form Responses
+- **Method**: GET
+- **Endpoint**: `/forms/{form_id}/export`
+- **Parameters**:
+  - `form_id` (path parameter, integer)
+- **Request Body**: N/A
+- **Success Response** (200):
+  - Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+  - File download: `form_{form_id}_responses.xlsx`
+  - File contains:
+    - Response ID
+    - Respondent Email
+    - Submission Timestamp
+    - All question responses
+- **Error Response** (404):
+```json
+{
+  "error": "Not Found",
+  "message": "Form not found"
+}
+```
+- **Error Response** (500):
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Error message details"
+}
+```
+
+## Questions
+
+### Get Question Analytics
+- **Method**: GET
+- **Endpoint**: `/questions/{question_id}/analytics`
+- **Parameters**:
+  - `question_id` (path parameter, integer)
+- **Request Body**: N/A
+- **Success Response** (200):
+```json
+{
+  "total_answers": 100,
+  "common_answers": [
+    {
+      "text_answer": "Option A",
+      "count": 45
+    },
+    {
+      "text_answer": "Option B",
+      "count": 30
+    }
+  ]
+}
+```
+- **Error Response** (404):
+```json
+{
+  "error": "Not Found",
+  "message": "Question not found"
+}
+```
+- **Error Response** (500):
+```json
+{
+  "error": "Internal Server Error",
+  "message": "Error message details"
+}
+```
+
+## Response Format
+
+### Success Response Format
+All successful responses follow a consistent format:
+- HTTP Status Code: 200 (OK) or 201 (Created)
+- JSON response body with relevant data
+- For file downloads: appropriate Content-Type header
+
+### Error Response Format
+All error responses follow this format:
+```json
+{
+  "error": "Error Type",
+  "message": "Detailed error message"
+}
+```
+
+Common error types:
+- 400 Bad Request
+- 404 Not Found
+- 500 Internal Server Error
+
+## Code Examples
+
+### JavaScript/TypeScript
+```typescript
+async function getFormSummary(formId: number, token: string) {
+  const response = await fetch(`/forms/${formId}/analytics/summary`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch form summary');
+  }
+  
+  return await response.json();
+}
+```
+
+### Python
+```python
+import requests
+
+def get_form_summary(form_id: int, token: str):
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.get(
+        f'/forms/{form_id}/analytics/summary',
+        headers=headers
+    )
+    
+    response.raise_for_status()
+    return response.json()
+```
+
+## Notes
+
+1. All endpoints require authentication via JWT token
+2. Dates are returned in ISO 8601 format
+3. File exports are in Excel format (.xlsx)
+4. Response data is paginated where appropriate
+5. All endpoints validate form ownership before returning data 
